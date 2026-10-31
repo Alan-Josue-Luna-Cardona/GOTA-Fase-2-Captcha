@@ -1,6 +1,6 @@
 Nombre: Alan Josué Luna Cardona
 Carnet: 0905-23-1346
-Repositorio: [PENDIENTE — agregar aquí la URL de GitHub antes de entregar]
+Repositorio: (https://github.com/Alan-Josue-Luna-Cardona/GOTA-Fase-2-Captcha)
 Modulo asignado: Consulta pública con captcha
 
 # GOTA · Consulta pública con captcha
@@ -203,9 +203,3 @@ Requiere PHP 8.2 o superior con las extensiones `intl`, `mbstring`, `mysqli` y `
 
 ## Checklist antes de la entrega
 
-- [ ] Reemplazar el campo `Repositorio:` con la URL real de GitHub (y comprobar que el catedrático puede abrirla).
-- [ ] Ningún `.env` ni `docker-compose.override.yml` está en el repositorio: `git ls-files | grep -E "(^|/)\.env$|override\.yml$"` no debe devolver nada.
-- [ ] El historial no contiene llaves: `git log --all -p | grep -iE "recaptcha_secret_key.*[0-9A-Za-z_-]{30,}"` no debe devolver nada.
-- [ ] `git diff` contra el monolito original no muestra cambios en `GOTA-main/`.
-- [ ] `docker compose up --build` desde cero funciona y el flujo de prueba de la sección 4 da los resultados esperados.
-- [ ] El diagrama se ve en la página principal del repositorio en GitHub.
