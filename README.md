@@ -1,7 +1,7 @@
-Nombre: Alan Josué Luna Cardona
-Carnet: 0905-23-1346
-Repositorio: (https://github.com/Alan-Josue-Luna-Cardona/GOTA-Fase-2-Captcha)
-Modulo asignado: Consulta pública con captcha
+Nombre: Alan Josué Luna Cardona  
+Carnet: 0905-23-1346  
+Repositorio: (https://github.com/Alan-Josue-Luna-Cardona/GOTA-Fase-2-Captcha)  
+Modulo asignado: Consulta pública con captcha  
 
 # GOTA · Consulta pública con captcha
 
