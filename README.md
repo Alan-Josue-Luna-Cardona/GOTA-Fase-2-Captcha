@@ -201,5 +201,4 @@ Requiere PHP 8.2 o superior con las extensiones `intl`, `mbstring`, `mysqli` y `
     └── .env.example
 ```
 
-## Checklist antes de la entrega
 
