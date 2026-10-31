@@ -1,0 +1,92 @@
+# Levanta la solución completa: la base de datos compartida, el monolito
+# GOTA (sin modificar) y el módulo independiente de consulta pública con
+# captcha. Ver el README para el paso a paso de uso y pruebas.
+#
+# Uso: docker compose up --build
+#   GOTA (monolito):                 http://localhost:8080
+#   Consulta pública con captcha:    http://localhost:8081
+#
+# NOTA TÉCNICA IMPORTANTE: la configuración de CodeIgniter se pasa con nombres
+# de variable con guion bajo (database_default_hostname) y NO con puntos
+# (database.default.hostname). Los scripts de arranque de la imagen de PHP
+# corren con /bin/sh (dash), que descarta las variables cuyo nombre contiene
+# puntos; con ellas el monolito no recibía el host y caía a su valor por
+# defecto (un socket de Google Cloud SQL), fallando con "No such file or
+# directory". CodeIgniter acepta ambos formatos.
+
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass_dev
+      MYSQL_DATABASE: gota_db
+      MYSQL_USER: gota_app
+      MYSQL_PASSWORD: gota_pass_dev
+    # Sin "ports": GOTA y el módulo hablan con la base por la red interna de
+    # Docker, así no choca con un MySQL/XAMPP que ya use el 3306 en tu equipo.
+    volumes:
+      - gota_db_data:/var/lib/mysql
+    healthcheck:
+      # Por TCP (-h 127.0.0.1): durante la inicialización MariaDB levanta un
+      # servidor temporal que solo escucha por socket; con TCP el healthcheck
+      # no da "listo" hasta que el servidor definitivo acepta conexiones.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootpass_dev --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  gota:
+    build:
+      context: ./GOTA-main
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      CI_ENVIRONMENT: development
+      app_baseURL: "http://localhost:8080/"
+      database_default_hostname: db
+      database_default_database: gota_db
+      database_default_username: gota_app
+      database_default_password: gota_pass_dev
+      database_default_DBDriver: MySQLi
+      database_default_port: "3306"
+    ports:
+      - "8080:8080"
+    # 1) Aplica las migraciones del monolito (reintenta hasta que la base responda).
+    # 2) Carga los 3 roles solo si la tabla Roles está vacía (el RolesSeeder del
+    #    monolito no es idempotente y duplicaría los roles en cada reinicio).
+    # 3) Arranca Apache.
+    command:
+      - sh
+      - -c
+      - |
+        until php spark migrate --all -n App -f; do echo "Esperando a la base de datos..."; sleep 3; done
+        php -r 'exit(((new mysqli(getenv("database_default_hostname"), getenv("database_default_username"), getenv("database_default_password"), getenv("database_default_database")))->query("SELECT COUNT(*) FROM Roles")->fetch_row()[0] > 0) ? 0 : 1);' || php spark db:seed RolesSeeder
+        exec apache2-foreground
+
+  captcha:
+    build:
+      context: ./consulta-publica-captcha
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      gota:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: gota_db
+      DB_USER: gota_app
+      DB_PASSWORD: gota_pass_dev
+      # Llaves reales de reCAPTCHA v2 (opcional para probar en local).
+      # Mientras estén vacías, el módulo no exige resolver el captcha.
+      RECAPTCHA_SITE_KEY: "6LcM9fstAAAAAHP9Rp_Q8HBJMcU9O5ai2HIRZF4y"
+      RECAPTCHA_SECRET_KEY: "6LcM9fstAAAAAI0CCWeuzMrKJq2bOrYaC1Knph0N"
+    ports:
+      - "8081:8081"
+
+volumes:
+  gota_db_data:

@@ -1,0 +1,11 @@
+.git
+.github
+.env
+writable/cache/*
+writable/logs/*
+writable/session/*
+writable/uploads/*
+writable/debugbar/*
+tests
+Dockerfile
+.dockerignore

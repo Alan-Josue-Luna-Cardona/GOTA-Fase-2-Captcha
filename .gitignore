@@ -1,0 +1,14 @@
+# Secretos y configuración local: nunca al repositorio
+.env
+*.env
+!*.env.example
+!.env.example
+
+# Dependencias y archivos generados
+vendor/
+node_modules/
+*.log
+writable/cache/*
+writable/logs/*
+writable/session/*
+writable/debugbar/*
